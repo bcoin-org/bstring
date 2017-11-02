@@ -2,7 +2,6 @@
 bench/
 docs/
 build/
-src/
 test/
 node_modules/
 npm-debug.log
