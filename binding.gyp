@@ -1,10 +1,10 @@
 {
   "targets": [{
-    "target_name": "bstr",
+    "target_name": "bstring",
     "sources": [
       "./src/base58.cc",
       "./src/bech32.cc",
-      "./src/bstr.cc"
+      "./src/bstring.cc"
     ],
     "cflags": [
       "-Wall",

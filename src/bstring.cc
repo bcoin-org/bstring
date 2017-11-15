@@ -1,5 +1,5 @@
 /**
- * bstr
+ * bstring
  * Copyright (c) 2016, Christopher Jeffrey (MIT License)
  */
 
@@ -12,7 +12,7 @@
 
 #include "base58.h"
 #include "bech32.h"
-#include "bstr.h"
+#include "bstring.h"
 
 NAN_METHOD(base58_encode) {
   if (info.Length() < 1)
@@ -29,7 +29,7 @@ NAN_METHOD(base58_encode) {
   uint8_t *str;
   size_t slen;
 
-  if (!bstr_base58_encode(&str, &slen, data, len))
+  if (!bstring_base58_encode(&str, &slen, data, len))
     return Nan::ThrowError("Base58 encoding failed.");
 
   info.GetReturnValue().Set(
@@ -52,11 +52,26 @@ NAN_METHOD(base58_decode) {
   uint8_t *data;
   size_t dlen;
 
-  if (!bstr_base58_decode(&data, &dlen, str, len))
+  if (!bstring_base58_decode(&data, &dlen, str, len))
     return Nan::ThrowError("Invalid base58 string.");
 
   info.GetReturnValue().Set(
     Nan::NewBuffer((char *)data, dlen).ToLocalChecked());
+}
+
+NAN_METHOD(base58_test) {
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(false));
+    return;
+  }
+
+  Nan::Utf8String str_(info[0]);
+  const uint8_t *str = (const uint8_t *)*str_;
+  size_t len = str_.length();
+
+  bool result = bstring_base58_test(str, len);
+
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result));
 }
 
 NAN_METHOD(bech32_encode) {
@@ -85,7 +100,7 @@ NAN_METHOD(bech32_encode) {
   char output[93];
   size_t olen;
 
-  if (!bstr_bech32_encode(output, hrp, witver, witprog, witprog_len))
+  if (!bstring_bech32_encode(output, hrp, witver, witprog, witprog_len))
     return Nan::ThrowError("Bech32 encoding failed.");
 
   olen = strlen((char *)output);
@@ -115,7 +130,7 @@ NAN_METHOD(bech32_decode) {
   char hrp[84];
   size_t hlen;
 
-  if (!bstr_bech32_decode(&witver, witprog, &witprog_len, hrp, addr))
+  if (!bstring_bech32_decode(&witver, witprog, &witprog_len, hrp, addr))
     return Nan::ThrowError("Invalid bech32 string.");
 
   hlen = strlen((char *)&hrp[0]);
@@ -135,11 +150,27 @@ NAN_METHOD(bech32_decode) {
   info.GetReturnValue().Set(ret);
 }
 
+NAN_METHOD(bech32_test) {
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(false));
+    return;
+  }
+
+  Nan::Utf8String addr_(info[0]);
+  const char *addr = (const char *)*addr_;
+
+  bool result = bstring_bech32_test(addr);
+
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result));
+}
+
 NAN_MODULE_INIT(init) {
   Nan::Export(target, "base58_encode", base58_encode);
   Nan::Export(target, "base58_decode", base58_decode);
+  Nan::Export(target, "base58_test", base58_test);
   Nan::Export(target, "bech32_encode", bech32_encode);
   Nan::Export(target, "bech32_decode", bech32_decode);
+  Nan::Export(target, "bech32_test", bech32_test);
 }
 
-NODE_MODULE(bstr, init)
+NODE_MODULE(bstring, init)

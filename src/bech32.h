@@ -19,8 +19,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _BSTR_BECH32_H
-#define _BSTR_BECH32_H 1
+#ifndef _BSTRING_BECH32_H
+#define _BSTRING_BECH32_H 1
 
 #include <stdint.h>
 
@@ -33,14 +33,15 @@
  *       ver:      Version of the witness program (between 0 and 16 inclusive).
  *       prog:     Data bytes for the witness program (between 2 and 40 bytes).
  *       prog_len: Number of data bytes in prog.
- *  Returns 1 if successful.
+ *  Returns true if successful.
  */
-int bstr_bech32_encode(
-    char *output,
-    const char *hrp,
-    int ver,
-    const uint8_t *prog,
-    size_t prog_len
+bool
+bstring_bech32_encode(
+  char *output,
+  const char *hrp,
+  int ver,
+  const uint8_t *prog,
+  size_t prog_len
 );
 
 /** Decode a SegWit address
@@ -54,14 +55,18 @@ int bstr_bech32_encode(
  *       hrp:      Pointer to the null-terminated human readable part that will
  *                 be updated to contain the string.
  *       addr:     Pointer to the null-terminated address.
- *  Returns 1 if successful.
+ *  Returns true if successful.
  */
-int bstr_bech32_decode(
-    int* ver,
-    uint8_t* prog,
-    size_t* prog_len,
-    char* hrp,
-    const char* addr
+bool
+bstring_bech32_decode(
+  int* ver,
+  uint8_t* prog,
+  size_t* prog_len,
+  char* hrp,
+  const char* addr
 );
+
+bool
+bstring_bech32_test(const char *addr);
 
 #endif

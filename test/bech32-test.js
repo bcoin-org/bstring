@@ -152,6 +152,7 @@ describe('bech32', function() {
 
       const recreate = toAddress(hrp, ret.version, ret.program);
       assert.strictEqual(recreate, addr.toLowerCase());
+      assert.strictEqual(bech32.test(addr), true);
     });
   }
 

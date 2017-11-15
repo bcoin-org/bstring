@@ -37,6 +37,7 @@ describe('base58', function() {
 
     for (const [hex, b58] of vectors) {
       const data = Buffer.from(hex, 'hex');
+      assert.strictEqual(base58.test(b58), true);
       assert.strictEqual(base58.encode(data), b58);
       assert.bufferEqual(base58.decode(b58), data);
     }

@@ -209,7 +209,8 @@ convert_bits(
   return 1;
 }
 
-int bstr_bech32_encode(
+bool
+bstring_bech32_encode(
   char *output,
   const char *hrp,
   int witver,
@@ -220,10 +221,10 @@ int bstr_bech32_encode(
   size_t datalen = 0;
 
   if (witver > 16)
-    return 0;
+    return false;
 
   if (witprog_len < 2 || witprog_len > 40)
-    return 0;
+    return false;
 
   data[0] = witver;
   convert_bits(data + 1, &datalen, 5, witprog, witprog_len, 8, 1);
@@ -232,7 +233,8 @@ int bstr_bech32_encode(
   return bech32_encode(output, hrp, data, datalen);
 }
 
-int bstr_bech32_decode(
+bool
+bstring_bech32_decode(
   int *witver,
   uint8_t *witdata,
   size_t *witdata_len,
@@ -243,23 +245,41 @@ int bstr_bech32_decode(
   size_t data_len;
 
   if (!bech32_decode(hrp, data, &data_len, addr))
-    return 0;
+    return false;
 
   if (data_len == 0 || data_len > 65)
-    return 0;
+    return false;
 
   if (data[0] > 16)
-    return 0;
+    return false;
 
   *witdata_len = 0;
 
   if (!convert_bits(witdata, witdata_len, 8, data + 1, data_len - 1, 5, 0))
-    return 0;
+    return false;
 
   if (*witdata_len < 2 || *witdata_len > 40)
-    return 0;
+    return false;
 
   *witver = data[0];
 
-  return 1;
+  return true;
+}
+
+bool
+bstring_bech32_test(const char *addr) {
+  char hrp[84];
+  uint8_t data[84];
+  size_t data_len;
+
+  if (!bech32_decode(hrp, data, &data_len, addr))
+    return false;
+
+  if (data_len == 0 || data_len > 65)
+    return false;
+
+  if (data[0] > 16)
+    return false;
+
+  return true;
 }

@@ -1,30 +1,29 @@
 {
-  "name": "bstr",
+  "name": "bstring",
   "version": "0.0.0",
-  "description": "String utilities and encodings for javascript",
+  "description": "String encodings for javascript",
   "keywords": [
     "string",
     "base58",
     "bech32"
   ],
   "license": "MIT",
-  "repository": "git://github.com/bcoin-org/bstr.git",
-  "homepage": "https://github.com/bcoin-org/bstr",
+  "repository": "git://github.com/bcoin-org/bstring.git",
+  "homepage": "https://github.com/bcoin-org/bstring",
   "bugs": {
-    "url": "https://github.com/bcoin-org/bstr/issues"
+    "url": "https://github.com/bcoin-org/bstring/issues"
   },
   "author": "Christopher Jeffrey <chjjeffrey@gmail.com>",
-  "main": "./lib/bstr.js",
+  "main": "./lib/bstring.js",
   "scripts": {
     "install": "node-gyp rebuild || echo 'Build failed.'",
-    "browserify": "browserify -s bstr lib/bstr.js | uglifyjs -c > bstr.js",
-    "clean": "rm -f bstr.js",
+    "browserify": "browserify -s bstring lib/bstring.js | uglifyjs -c > bstring.js",
+    "clean": "rm -f bstring.js",
     "lint": "eslint lib/ test/ || exit 0",
     "test": "mocha --reporter spec test/*-test.js",
     "webpack": "webpack --config webpack.config.js"
   },
   "dependencies": {
-    "bbuf": "^0.0.1",
     "bindings": "^1.3.0",
     "nan": "^2.7.0"
   },

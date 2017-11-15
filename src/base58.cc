@@ -19,7 +19,7 @@ static const int8_t TABLE[128] = {
 };
 
 bool
-bstr_base58_encode(
+bstring_base58_encode(
   uint8_t **str,
   size_t *strlen,
   const uint8_t *data,
@@ -97,7 +97,7 @@ bstr_base58_encode(
 }
 
 bool
-bstr_base58_decode(
+bstring_base58_decode(
   uint8_t **data,
   size_t *datalen,
   const uint8_t *str,
@@ -180,6 +180,28 @@ bstr_base58_decode(
   *datalen = (size_t)j;
 
   free(b256);
+
+  return true;
+}
+
+bool
+bstring_base58_test(const uint8_t *str, size_t strlen) {
+  assert(str != NULL);
+
+  int32_t slen = (int32_t)strlen;
+
+  if (slen == 0)
+    return true;
+
+  int32_t i = 0;
+
+  for (; i < slen; i++) {
+    if (str[i] & 0x80)
+      return false;
+
+    if ((int32_t)TABLE[str[i]] == -1)
+      return false;
+  }
 
   return true;
 }

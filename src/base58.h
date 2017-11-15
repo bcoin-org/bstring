@@ -1,10 +1,10 @@
-#ifndef _BSTR_BASE58_H
-#define _BSTR_BASE58_H
+#ifndef _BSTRING_BASE58_H
+#define _BSTRING_BASE58_H
 
 #include <stdlib.h>
 
 bool
-bstr_base58_encode(
+bstring_base58_encode(
   uint8_t **str,
   size_t *strlen,
   const uint8_t *data,
@@ -12,11 +12,14 @@ bstr_base58_encode(
 );
 
 bool
-bstr_base58_decode(
+bstring_base58_decode(
   uint8_t **data,
   size_t *datalen,
   const uint8_t *str,
   size_t strlen
 );
+
+bool
+bstring_base58_test(const uint8_t *str, size_t strlen);
 
 #endif
