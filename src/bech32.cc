@@ -220,7 +220,7 @@ bstring_bech32_encode(
   uint8_t data[65];
   size_t datalen = 0;
 
-  if (witver > 16)
+  if (witver > 31)
     return false;
 
   if (witprog_len < 2 || witprog_len > 40)
@@ -250,7 +250,7 @@ bstring_bech32_decode(
   if (data_len == 0 || data_len > 65)
     return false;
 
-  if (data[0] > 16)
+  if (data[0] > 31)
     return false;
 
   *witdata_len = 0;
@@ -278,7 +278,7 @@ bstring_bech32_test(const char *addr) {
   if (data_len == 0 || data_len > 65)
     return false;
 
-  if (data[0] > 16)
+  if (data[0] > 31)
     return false;
 
   return true;
