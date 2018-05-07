@@ -170,4 +170,28 @@ describe('cashaddr', function() {
       assert.strictEqual(addr, addrinfo.cashaddr);
     });
   }
+
+  for (const addrinfo of addressTranslationP2PKH) {
+    it(`should decode P2PKH with default prefix ${addrinfo.cashaddr}`, () => {
+      const defaultPrefix = 'bitcoincash';
+      const addr = addrinfo.cashaddr.split(':')[1];
+      const results = cashaddr.decode(addr, defaultPrefix);
+
+      assert.strictEqual(results.prefix, 'bitcoincash');
+      assert.strictEqual(results.type, 0);
+      assert.bufferEqual(results.hash, addrinfo.hash);
+    });
+  }
+
+  for (const addrinfo of addressTranslationP2SH) {
+    it(`should decode P2Sh with default prefix ${addrinfo.cashaddr}`, () => {
+      const defaultPrefix = 'bitcoincash';
+      const addr = addrinfo.cashaddr.split(':')[1];
+      const results = cashaddr.decode(addr, defaultPrefix);
+
+      assert.strictEqual(results.prefix, 'bitcoincash');
+      assert.strictEqual(results.type, 1);
+      assert.bufferEqual(results.hash, addrinfo.hash);
+    });
+  }
 });
