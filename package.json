@@ -37,6 +37,7 @@
   "gypfile": true,
   "browser": {
     "./lib/base58": "./lib/base58-browser.js",
-    "./lib/bech32": "./lib/bech32-browser.js"
+    "./lib/bech32": "./lib/bech32-browser.js",
+    "./lib/cashaddr": "./lib/cashaddr-browser.js"
   }
 }
