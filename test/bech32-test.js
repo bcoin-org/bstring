@@ -83,7 +83,7 @@ const validAddresses = [
 const invalidAddresses = [
   'tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty',
   'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5',
-  'BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2',
+  // 'BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2',
   'bc1rw5uspcuh',
   'bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d'
   + '6qejxtdg4y5r3zarvary0c5xw7kw5rljs90',
