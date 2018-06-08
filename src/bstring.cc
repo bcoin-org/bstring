@@ -29,7 +29,7 @@ NAN_METHOD(base58_encode) {
   uint8_t *str;
   size_t slen;
 
-  if (!bstring_base58_encode(&str, &slen, data, len))
+  if (!bstring_base58_encode(data, len, &str, &slen))
     return Nan::ThrowError("Base58 encoding failed.");
 
   info.GetReturnValue().Set(
@@ -52,7 +52,7 @@ NAN_METHOD(base58_decode) {
   uint8_t *data;
   size_t dlen;
 
-  if (!bstring_base58_decode(&data, &dlen, str, len))
+  if (!bstring_base58_decode(str, len, &data, &dlen))
     return Nan::ThrowError("Invalid base58 string.");
 
   info.GetReturnValue().Set(

@@ -102,6 +102,9 @@ function fromAddress(hrp, addr) {
   if (dec.version === 0 && dec.hash.length !== 20 && dec.hash.length !== 32)
     throw new Error('Malformed witness program.');
 
+  if (dec.version > 16)
+    throw new Error('Malformed witness program.');
+
   return {
     version: dec.version,
     program: dec.hash
