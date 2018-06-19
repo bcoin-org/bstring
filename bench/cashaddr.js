@@ -1,7 +1,7 @@
 'use strict';
 
 const bench = require('./bench');
-const cashaddr = require('../lib/cashaddr-browser');
+const cashaddr = require('../lib/cashaddr');
 const crypto = require('crypto');
 
 const addrs = [];
