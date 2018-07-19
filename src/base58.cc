@@ -25,15 +25,18 @@ bstring_base58_encode(
   uint8_t **str,
   size_t *strlen
 ) {
-  int32_t dlen = (int32_t)datalen;
-
   *str = NULL;
   *strlen = 0;
 
-  assert(data != NULL);
+  int32_t dlen = (int32_t)datalen;
+
+  if (dlen < 0)
+    return false;
 
   if (dlen == 0)
     return true;
+
+  assert(data != NULL);
 
   int32_t zeroes = 0;
   int32_t i;
@@ -44,8 +47,13 @@ bstring_base58_encode(
     zeroes += 1;
   }
 
-  int32_t b58len = dlen * 138 / 100 + 1;
-  uint8_t *b58 = (uint8_t *)malloc(b58len);
+  size_t b58size = (size_t)dlen * 138 / 100 + 1;
+  int32_t b58len = (int32_t)b58size;
+
+  if (b58len < 0)
+    return false;
+
+  uint8_t *b58 = (uint8_t *)malloc(b58size);
   int32_t length = 0;
 
   if (b58 == NULL)
@@ -106,12 +114,15 @@ bstring_base58_decode(
   *data = NULL;
   *datalen = 0;
 
-  assert(str != NULL);
-
   int32_t slen = (int32_t)strlen;
+
+  if (slen < 0)
+    return false;
 
   if (slen == 0)
     return true;
+
+  assert(str != NULL);
 
   int32_t zeroes = 0;
   int32_t i;
@@ -123,6 +134,10 @@ bstring_base58_decode(
   }
 
   int32_t b256len = slen * 733 / 1000 + 1;
+
+  if (b256len < 0)
+    return false;
+
   uint8_t *b256 = (uint8_t *)malloc(b256len);
   int32_t length = 0;
 
@@ -186,12 +201,15 @@ bstring_base58_decode(
 
 bool
 bstring_base58_test(const uint8_t *str, size_t strlen) {
-  assert(str != NULL);
-
   int32_t slen = (int32_t)strlen;
+
+  if (slen < 0)
+    return false;
 
   if (slen == 0)
     return true;
+
+  assert(str != NULL);
 
   int32_t i = 0;
 
