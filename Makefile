@@ -1,14 +1,8 @@
 all:
 	@node-gyp rebuild
 
-browserify:
-	@npm run browserify
-
-webpack:
-	@npm run webpack
-
 clean:
-	@npm run clean
+	@node-gyp clean
 
 lint:
 	@npm run lint
@@ -16,4 +10,4 @@ lint:
 test:
 	@npm test
 
-.PHONY: all browserify webpack clean lint test
+.PHONY: all clean lint test
