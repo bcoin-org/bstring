@@ -4,6 +4,7 @@
     "sources": [
       "./src/base58.cc",
       "./src/bech32.cc",
+      "./src/cashaddr.cc",
       "./src/bstring.cc"
     ],
     "cflags": [
