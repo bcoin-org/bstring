@@ -5,6 +5,7 @@
 
 const assert = require('./util/assert');
 const base58 = require('../lib/base58');
+const json = require('./data/base58.json');
 
 const vectors = [
   ['', ''],
@@ -42,4 +43,16 @@ describe('base58', function() {
       assert.bufferEqual(base58.decode(b58), data);
     }
   });
+
+  for (let i = 0; i < json.length; i++) {
+    const vector = json[i];
+    const [hex, b58] = vector;
+
+    it(`should encode/decode base58 (${i})`, () => {
+      const data = Buffer.from(hex, 'hex');
+      assert.strictEqual(base58.test(b58), true);
+      assert.strictEqual(base58.encode(data), b58);
+      assert.bufferEqual(base58.decode(b58), data);
+    });
+  }
 });

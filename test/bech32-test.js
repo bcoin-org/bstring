@@ -28,6 +28,7 @@
 
 const assert = require('./util/assert');
 const bech32 = require('../lib/bech32');
+const vectors = require('./data/bech32.json');
 
 const validAddresses = [
   [
@@ -83,7 +84,7 @@ const validAddresses = [
 const invalidAddresses = [
   'tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty',
   'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5',
-  // 'BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2',
+  'BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2',
   'bc1rw5uspcuh',
   'bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d'
   + '6qejxtdg4y5r3zarvary0c5xw7kw5rljs90',
@@ -106,6 +107,7 @@ function fromAddress(hrp, addr) {
     throw new Error('Malformed witness program.');
 
   return {
+    hrp: dec.hrp,
     version: dec.version,
     program: dec.hash
   };
@@ -119,12 +121,55 @@ function toAddress(hrp, version, program) {
   return ret;
 }
 
+function fromAddress2(expect, addr, lax) {
+  const [hrp, data] = bech32.deserialize(addr);
+
+  if (!lax) {
+    if (hrp !== expect || data.length < 1 || data[0] > 16)
+      throw new Error('Invalid bech32 prefix or data length.');
+  }
+
+  const hash = bech32.convertBits(data.slice(1), 5, 8, false);
+
+  if (!lax) {
+    if (hash.length < 2 || hash.length > 40)
+      throw new Error('Invalid witness program size.');
+  }
+
+  if (!lax) {
+    if (data[0] === 0 && hash.length !== 20 && hash.length !== 32)
+      throw new Error('Malformed witness program.');
+  }
+
+  return {
+    hrp: hrp,
+    version: data[0],
+    program: hash
+  };
+}
+
+function toAddress2(hrp, version, program, lax) {
+  const data = bech32.convertBits(program, 8, 5, true);
+  const ret = bech32.serialize(hrp, concat(version, data));
+
+  fromAddress2(hrp, ret, lax);
+
+  return ret;
+}
+
 function createProgram(version, program) {
   const data = Buffer.allocUnsafe(2 + program.length);
   data[0] = version ? version + 0x80 : 0;
   data[1] = program.length;
   program.copy(data, 2);
   return data;
+}
+
+function concat(version, hash) {
+  const buf = Buffer.allocUnsafe(1 + hash.length);
+  buf[0] = version;
+  hash.copy(buf, 1);
+  return buf;
 }
 
 describe('bech32', function() {
@@ -164,5 +209,75 @@ describe('bech32', function() {
       assert.throws(() => fromAddress('bc', addr));
       assert.throws(() => fromAddress('tb', addr));
     });
+  }
+
+  if (bech32.convertBits) {
+    for (const [addr, script] of validAddresses) {
+      it(`should have valid address for ${addr}`, () => {
+        let hrp = 'bc';
+        let ret = null;
+
+        try {
+          ret = fromAddress2(hrp, addr);
+        } catch (e) {
+          ret = null;
+        }
+
+        if (ret === null) {
+          hrp = 'tb';
+          try {
+            ret = fromAddress2(hrp, addr);
+          } catch (e) {
+            ret = null;
+          }
+        }
+
+        assert(ret !== null);
+
+        const output = createProgram(ret.version, ret.program);
+        assert.bufferEqual(output, script);
+
+        const recreate = toAddress2(hrp, ret.version, ret.program);
+        assert.strictEqual(recreate, addr.toLowerCase());
+        assert.strictEqual(bech32.test(addr), true);
+      });
+    }
+
+    for (const addr of invalidAddresses) {
+      it(`should have invalid address for ${addr}`, () => {
+        assert.throws(() => fromAddress2('bc', addr));
+        assert.throws(() => fromAddress2('tb', addr));
+      });
+    }
+  }
+
+  for (const [hrp, version, hex, addr1] of vectors) {
+    const hash = Buffer.from(hex, 'hex');
+
+    it(`should decode and reserialize ${addr1}`, () => {
+      const data = bech32.decode(addr1);
+
+      assert.strictEqual(data.hrp, hrp);
+      assert.strictEqual(data.version, version);
+      assert.bufferEqual(data.hash, hash);
+
+      const addr2 = bech32.encode(hrp, version, hash);
+
+      assert.strictEqual(addr2, addr1.toLowerCase());
+    });
+
+    if (bech32.convertBits) {
+      it(`should decode and reserialize ${addr1}`, () => {
+        const data = fromAddress2(hrp, addr1, true);
+
+        assert.strictEqual(data.hrp, hrp);
+        assert.strictEqual(data.version, version);
+        assert.bufferEqual(data.program, hash);
+
+        const addr2 = toAddress2(hrp, version, hash, true);
+
+        assert.strictEqual(addr2, addr1.toLowerCase());
+      });
+    }
   }
 });
