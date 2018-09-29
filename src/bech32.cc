@@ -49,8 +49,8 @@ static const int8_t TABLE[128] = {
    1,  0,  3, 16, 11, 28, 12, 14,  6,  4,  2, -1, -1, -1, -1, -1
 };
 
-static int
-bech32_encode(
+bool
+bstring_bech32_serialize(
   char *output,
   const char *hrp,
   const uint8_t *data,
@@ -61,14 +61,14 @@ bech32_encode(
 
   while (hrp[i] != 0) {
     if (!(hrp[i] >> 5))
-      return 0;
+      return false;
 
     chk = bech32_polymod_step(chk) ^ (hrp[i] >> 5);
     i += 1;
   }
 
   if (i + 7 + data_len > 90)
-    return 0;
+    return false;
 
   chk = bech32_polymod_step(chk);
 
@@ -80,7 +80,7 @@ bech32_encode(
   *(output++) = '1';
 
   for (i = 0; i < data_len; i++) {
-    if (*data >> 5) return 0;
+    if (*data >> 5) return false;
     chk = bech32_polymod_step(chk) ^ (*data);
     *(output++) = CHARSET[*(data++)];
   }
@@ -95,11 +95,16 @@ bech32_encode(
 
   *output = 0;
 
-  return 1;
+  return true;
 }
 
-static int
-bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
+bool
+bstring_bech32_deserialize(
+  char *hrp,
+  uint8_t *data,
+  size_t *data_len,
+  const char *input
+) {
   uint32_t chk = 1;
   size_t i;
   size_t input_len = strlen(input);
@@ -108,7 +113,7 @@ bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
   int have_lower = 0, have_upper = 0;
 
   if (input_len < 8 || input_len > 90) {
-    return 0;
+    return false;
   }
 
   *data_len = 0;
@@ -119,7 +124,7 @@ bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
   hrp_len = input_len - (1 + *data_len);
 
   if (hrp_len < 1 || *data_len < 6)
-    return 0;
+    return false;
 
   *(data_len) -= 6;
 
@@ -127,7 +132,7 @@ bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
     int ch = input[i];
 
     if (ch < 33 || ch > 126)
-      return 0;
+      return false;
 
     if (ch >= 'a' && ch <= 'z') {
       have_lower = 1;
@@ -159,7 +164,7 @@ bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
       have_upper = 1;
 
     if (v == -1)
-      return 0;
+      return false;
 
     chk = bech32_polymod_step(chk) ^ v;
 
@@ -170,13 +175,25 @@ bech32_decode(char *hrp, uint8_t *data, size_t *data_len, const char *input) {
   }
 
   if (have_lower && have_upper)
-    return 0;
+    return false;
 
   return chk == 1;
 }
 
-static int
-convert_bits(
+bool
+bstring_bech32_is(const char *str) {
+  char hrp[84];
+  uint8_t data[84];
+  size_t data_len;
+
+  if (!bstring_bech32_deserialize(hrp, data, &data_len, str))
+    return false;
+
+  return true;
+}
+
+bool
+bstring_bech32_convert_bits(
   uint8_t *out,
   size_t *outlen,
   int outbits,
@@ -203,10 +220,10 @@ convert_bits(
       out[(*outlen)++] = (val << (outbits - bits)) & maxv;
     }
   } else if (((val << (outbits - bits)) & maxv) || bits >= inbits) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool
@@ -219,6 +236,7 @@ bstring_bech32_encode(
 ) {
   uint8_t data[65];
   size_t datalen = 0;
+  bool ret;
 
   if (witver > 31)
     return false;
@@ -227,10 +245,23 @@ bstring_bech32_encode(
     return false;
 
   data[0] = witver;
-  convert_bits(data + 1, &datalen, 5, witprog, witprog_len, 8, 1);
+
+  ret = bstring_bech32_convert_bits(
+    data + 1,
+    &datalen,
+    5,
+    witprog,
+    witprog_len,
+    8,
+    1
+  );
+
+  if (!ret)
+    return false;
+
   datalen += 1;
 
-  return bech32_encode(output, hrp, data, datalen);
+  return bstring_bech32_serialize(output, hrp, data, datalen);
 }
 
 bool
@@ -243,8 +274,9 @@ bstring_bech32_decode(
 ) {
   uint8_t data[84];
   size_t data_len;
+  bool ret;
 
-  if (!bech32_decode(hrp, data, &data_len, addr))
+  if (!bstring_bech32_deserialize(hrp, data, &data_len, addr))
     return false;
 
   if (data_len == 0 || data_len > 65)
@@ -255,7 +287,17 @@ bstring_bech32_decode(
 
   *witdata_len = 0;
 
-  if (!convert_bits(witdata, witdata_len, 8, data + 1, data_len - 1, 5, 0))
+  ret = bstring_bech32_convert_bits(
+    witdata,
+    witdata_len,
+    8,
+    data + 1,
+    data_len - 1,
+    5,
+    0
+  );
+
+  if (!ret)
     return false;
 
   if (*witdata_len < 2 || *witdata_len > 40)
@@ -272,7 +314,7 @@ bstring_bech32_test(const char *addr) {
   uint8_t data[84];
   size_t data_len;
 
-  if (!bech32_decode(hrp, data, &data_len, addr))
+  if (!bstring_bech32_deserialize(hrp, data, &data_len, addr))
     return false;
 
   if (data_len == 0 || data_len > 65)

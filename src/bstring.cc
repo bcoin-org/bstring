@@ -44,7 +44,7 @@ NAN_METHOD(base58_decode) {
     return Nan::ThrowError("base58_decode() requires arguments.");
 
   if (!info[0]->IsString())
-    return Nan::ThrowError("First argument must be a string.");
+    return Nan::ThrowTypeError("First argument must be a string.");
 
   Nan::Utf8String str_(info[0]);
   const uint8_t *str = (const uint8_t *)*str_;
@@ -75,12 +75,141 @@ NAN_METHOD(base58_test) {
   info.GetReturnValue().Set(Nan::New<v8::Boolean>(result));
 }
 
+NAN_METHOD(bech32_serialize) {
+  if (info.Length() < 2)
+    return Nan::ThrowError("bech32_serialize() requires arguments.");
+
+  if (!info[0]->IsString())
+    return Nan::ThrowTypeError("First argument must be a string.");
+
+  Nan::Utf8String hstr(info[0]);
+
+  v8::Local<v8::Object> dbuf = info[1].As<v8::Object>();
+
+  if (!node::Buffer::HasInstance(dbuf))
+    return Nan::ThrowTypeError("Second argument must be a buffer.");
+
+  const char *hrp = (const char *)*hstr;
+  const uint8_t *data = (uint8_t *)node::Buffer::Data(dbuf);
+  size_t data_len = node::Buffer::Length(dbuf);
+
+  char output[93];
+  size_t olen;
+
+  if (!bstring_bech32_serialize(output, hrp, data, data_len))
+    return Nan::ThrowError("Bech32 encoding failed.");
+
+  olen = strlen((char *)output);
+
+  info.GetReturnValue().Set(
+    Nan::New<v8::String>((char *)output, olen).ToLocalChecked());
+}
+
+NAN_METHOD(bech32_deserialize) {
+  if (info.Length() < 1)
+    return Nan::ThrowError("bech32_deserialize() requires arguments.");
+
+  if (!info[0]->IsString())
+    return Nan::ThrowTypeError("First argument must be a string.");
+
+  Nan::Utf8String input_(info[0]);
+  const char *input = (const char *)*input_;
+
+  uint8_t data[84];
+  size_t data_len;
+  char hrp[84];
+  size_t hlen;
+
+  if (!bstring_bech32_deserialize(hrp, data, &data_len, input))
+    return Nan::ThrowError("Invalid bech32 string.");
+
+  hlen = strlen((char *)&hrp[0]);
+
+  v8::Local<v8::Array> ret = Nan::New<v8::Array>();
+  ret->Set(0, Nan::New<v8::String>((char *)&hrp[0], hlen).ToLocalChecked());
+  ret->Set(1, Nan::CopyBuffer((char *)&data[0], data_len).ToLocalChecked());
+
+  info.GetReturnValue().Set(ret);
+}
+
+NAN_METHOD(bech32_is) {
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    info.GetReturnValue().Set(Nan::New<v8::Boolean>(false));
+    return;
+  }
+
+  Nan::Utf8String addr_(info[0]);
+  const char *addr = (const char *)*addr_;
+
+  bool result = bstring_bech32_is(addr);
+
+  info.GetReturnValue().Set(Nan::New<v8::Boolean>(result));
+}
+
+NAN_METHOD(bech32_convert_bits) {
+  if (info.Length() < 4)
+    return Nan::ThrowError("bech32_convert_bits() requires arguments.");
+
+  v8::Local<v8::Object> dbuf = info[0].As<v8::Object>();
+
+  if (!node::Buffer::HasInstance(dbuf))
+    return Nan::ThrowTypeError("First argument must be a buffer.");
+
+  if (!info[1]->IsNumber())
+    return Nan::ThrowTypeError("Second argument must be a number.");
+
+  if (!info[2]->IsNumber())
+    return Nan::ThrowTypeError("Third argument must be a number.");
+
+  if (!info[3]->IsBoolean())
+    return Nan::ThrowTypeError("Fourth argument must be a boolean.");
+
+  const uint8_t *data = (uint8_t *)node::Buffer::Data(dbuf);
+  size_t data_len = node::Buffer::Length(dbuf);
+  int frombits = (int)info[1]->Int32Value();
+  int tobits = (int)info[2]->Int32Value();
+  int pad = (int)info[3]->BooleanValue();
+
+  if (!(frombits == 8 && tobits == 5 && pad == 1)
+      && !(frombits == 5 && tobits == 8 && pad == 0)) {
+    return Nan::ThrowRangeError("Parameters out of range.");
+  }
+
+  size_t size = (data_len * frombits + (tobits - 1)) / tobits;
+
+  if (pad)
+    size += 1;
+
+  uint8_t *out = (uint8_t *)malloc(size);
+  size_t out_len = 0;
+  bool ret;
+
+  if (!out)
+    return Nan::ThrowError("Could not allocate.");
+
+  ret = bstring_bech32_convert_bits(
+    out,
+    &out_len,
+    tobits,
+    data,
+    data_len,
+    frombits,
+    pad
+  );
+
+  if (!ret)
+    return Nan::ThrowError("Invalid bits.");
+
+  info.GetReturnValue().Set(
+    Nan::NewBuffer((char *)out, out_len).ToLocalChecked());
+}
+
 NAN_METHOD(bech32_encode) {
   if (info.Length() < 3)
     return Nan::ThrowError("bech32_encode() requires arguments.");
 
   if (!info[0]->IsString())
-    return Nan::ThrowError("First argument must be a string.");
+    return Nan::ThrowTypeError("First argument must be a string.");
 
   Nan::Utf8String hstr(info[0]);
 
@@ -93,7 +222,7 @@ NAN_METHOD(bech32_encode) {
     return Nan::ThrowTypeError("Third argument must be a buffer.");
 
   const char *hrp = (const char *)*hstr;
-  int32_t witver = (int32_t)info[1]->Int32Value();
+  int witver = (int)info[1]->Int32Value();
 
   const uint8_t *witprog = (uint8_t *)node::Buffer::Data(wbuf);
   size_t witprog_len = node::Buffer::Length(wbuf);
@@ -115,10 +244,10 @@ NAN_METHOD(bech32_decode) {
     return Nan::ThrowError("bech32_decode() requires arguments.");
 
   if (!info[0]->IsString())
-    return Nan::ThrowError("First argument must be a string.");
+    return Nan::ThrowTypeError("First argument must be a string.");
 
   if (!info[1]->IsObject())
-    return Nan::ThrowError("Second argument must be an object.");
+    return Nan::ThrowTypeError("Second argument must be an object.");
 
   Nan::Utf8String addr_(info[0]);
   const char *addr = (const char *)*addr_;
@@ -170,7 +299,7 @@ NAN_METHOD(cashaddr_encode) {
     return Nan::ThrowError("cashaddr_encode() requires arguments.");
 
   if (!info[0]->IsString())
-    return Nan::ThrowError("First argument must be a string.");
+    return Nan::ThrowTypeError("First argument must be a string.");
 
   Nan::Utf8String prefix_str(info[0]);
 
@@ -183,7 +312,7 @@ NAN_METHOD(cashaddr_encode) {
     return Nan::ThrowTypeError("Third argument must be a buffer.");
 
   const char *prefix = (const char *)*prefix_str;
-  int32_t type = (int32_t)info[1]->Int32Value();
+  int type = (int)info[1]->Int32Value();
 
   const uint8_t *hash = (uint8_t *)node::Buffer::Data(hashbuf);
   size_t hash_len = node::Buffer::Length(hashbuf);
@@ -208,13 +337,13 @@ NAN_METHOD(cashaddr_decode) {
     return Nan::ThrowError("cashaddr_decode() requires arguments.");
 
   if (!info[0]->IsString())
-    return Nan::ThrowError("First argument must be a string.");
+    return Nan::ThrowTypeError("First argument must be a string.");
 
   if (!info[1]->IsString())
-    return Nan::ThrowError("Second argument must be a string.");
+    return Nan::ThrowTypeError("Second argument must be a string.");
 
   if (!info[2]->IsObject())
-    return Nan::ThrowError("Third argument must be an object.");
+    return Nan::ThrowTypeError("Third argument must be an object.");
 
   Nan::Utf8String addr_(info[0]);
   const char *addr = (const char *)*addr_;
@@ -255,13 +384,13 @@ NAN_METHOD(cashaddr_decode) {
 }
 
 NAN_METHOD(cashaddr_test) {
-  if (info.Length() < 1 || !info[0]->IsString()) {
+  if (info.Length() < 2 || !info[0]->IsString()) {
     info.GetReturnValue().Set(Nan::New<v8::Boolean>(false));
     return;
   }
 
   if (!info[1]->IsString())
-    return Nan::ThrowError("Second argument must be a string.");
+    return Nan::ThrowTypeError("Second argument must be a string.");
 
   Nan::Utf8String addr_(info[0]);
   const char *addr = (const char *)*addr_;
@@ -280,6 +409,10 @@ NAN_MODULE_INIT(init) {
   Nan::Export(target, "base58_encode", base58_encode);
   Nan::Export(target, "base58_decode", base58_decode);
   Nan::Export(target, "base58_test", base58_test);
+  Nan::Export(target, "bech32_serialize", bech32_serialize);
+  Nan::Export(target, "bech32_deserialize", bech32_deserialize);
+  Nan::Export(target, "bech32_is", bech32_is);
+  Nan::Export(target, "bech32_convert_bits", bech32_convert_bits);
   Nan::Export(target, "bech32_encode", bech32_encode);
   Nan::Export(target, "bech32_decode", bech32_decode);
   Nan::Export(target, "bech32_test", bech32_test);

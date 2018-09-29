@@ -24,6 +24,36 @@
 
 #include <stdint.h>
 
+bool
+bstring_bech32_serialize(
+  char *output,
+  const char *hrp,
+  const uint8_t *data,
+  size_t data_len
+);
+
+bool
+bstring_bech32_deserialize(
+  char *hrp,
+  uint8_t *data,
+  size_t *data_len,
+  const char *input
+);
+
+bool
+bstring_bech32_is(const char *str);
+
+bool
+bstring_bech32_convert_bits(
+  uint8_t *out,
+  size_t *outlen,
+  int outbits,
+  const uint8_t *in,
+  size_t inlen,
+  int inbits,
+  int pad
+);
+
 /** Encode a SegWit address
  *
  *  Out: output:   Pointer to a buffer of size 73 + strlen(hrp) that will be
@@ -59,11 +89,11 @@ bstring_bech32_encode(
  */
 bool
 bstring_bech32_decode(
-  int* ver,
-  uint8_t* prog,
-  size_t* prog_len,
-  char* hrp,
-  const char* addr
+  int *ver,
+  uint8_t *prog,
+  size_t *prog_len,
+  char *hrp,
+  const char *addr
 );
 
 bool

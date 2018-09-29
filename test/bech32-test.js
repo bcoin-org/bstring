@@ -211,44 +211,42 @@ describe('bech32', function() {
     });
   }
 
-  if (bech32.convertBits) {
-    for (const [addr, script] of validAddresses) {
-      it(`should have valid address for ${addr}`, () => {
-        let hrp = 'bc';
-        let ret = null;
+  for (const [addr, script] of validAddresses) {
+    it(`should have valid address for ${addr}`, () => {
+      let hrp = 'bc';
+      let ret = null;
 
+      try {
+        ret = fromAddress2(hrp, addr);
+      } catch (e) {
+        ret = null;
+      }
+
+      if (ret === null) {
+        hrp = 'tb';
         try {
           ret = fromAddress2(hrp, addr);
         } catch (e) {
           ret = null;
         }
+      }
 
-        if (ret === null) {
-          hrp = 'tb';
-          try {
-            ret = fromAddress2(hrp, addr);
-          } catch (e) {
-            ret = null;
-          }
-        }
+      assert(ret !== null);
 
-        assert(ret !== null);
+      const output = createProgram(ret.version, ret.program);
+      assert.bufferEqual(output, script);
 
-        const output = createProgram(ret.version, ret.program);
-        assert.bufferEqual(output, script);
+      const recreate = toAddress2(hrp, ret.version, ret.program);
+      assert.strictEqual(recreate, addr.toLowerCase());
+      assert.strictEqual(bech32.test(addr), true);
+    });
+  }
 
-        const recreate = toAddress2(hrp, ret.version, ret.program);
-        assert.strictEqual(recreate, addr.toLowerCase());
-        assert.strictEqual(bech32.test(addr), true);
-      });
-    }
-
-    for (const addr of invalidAddresses) {
-      it(`should have invalid address for ${addr}`, () => {
-        assert.throws(() => fromAddress2('bc', addr));
-        assert.throws(() => fromAddress2('tb', addr));
-      });
-    }
+  for (const addr of invalidAddresses) {
+    it(`should have invalid address for ${addr}`, () => {
+      assert.throws(() => fromAddress2('bc', addr));
+      assert.throws(() => fromAddress2('tb', addr));
+    });
   }
 
   for (const [hrp, version, hex, addr1] of vectors) {
@@ -266,18 +264,16 @@ describe('bech32', function() {
       assert.strictEqual(addr2, addr1.toLowerCase());
     });
 
-    if (bech32.convertBits) {
-      it(`should decode and reserialize ${addr1}`, () => {
-        const data = fromAddress2(hrp, addr1, true);
+    it(`should decode and reserialize ${addr1}`, () => {
+      const data = fromAddress2(hrp, addr1, true);
 
-        assert.strictEqual(data.hrp, hrp);
-        assert.strictEqual(data.version, version);
-        assert.bufferEqual(data.program, hash);
+      assert.strictEqual(data.hrp, hrp);
+      assert.strictEqual(data.version, version);
+      assert.bufferEqual(data.program, hash);
 
-        const addr2 = toAddress2(hrp, version, hash, true);
+      const addr2 = toAddress2(hrp, version, hash, true);
 
-        assert.strictEqual(addr2, addr1.toLowerCase());
-      });
-    }
+      assert.strictEqual(addr2, addr1.toLowerCase());
+    });
   }
 });
