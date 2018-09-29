@@ -240,19 +240,14 @@ NAN_METHOD(bech32_encode) {
 }
 
 NAN_METHOD(bech32_decode) {
-  if (info.Length() < 2)
+  if (info.Length() < 1)
     return Nan::ThrowError("bech32_decode() requires arguments.");
 
   if (!info[0]->IsString())
     return Nan::ThrowTypeError("First argument must be a string.");
 
-  if (!info[1]->IsObject())
-    return Nan::ThrowTypeError("Second argument must be an object.");
-
   Nan::Utf8String addr_(info[0]);
   const char *addr = (const char *)*addr_;
-
-  v8::Local<v8::Object> ret = info[1].As<v8::Object>();
 
   uint8_t witprog[40];
   size_t witprog_len;
@@ -264,6 +259,8 @@ NAN_METHOD(bech32_decode) {
     return Nan::ThrowError("Invalid bech32 string.");
 
   hlen = strlen((char *)&hrp[0]);
+
+  v8::Local<v8::Object> ret = Nan::New<v8::Object>();
 
   Nan::Set(ret,
     Nan::New<v8::String>("hrp").ToLocalChecked(),
@@ -333,7 +330,7 @@ NAN_METHOD(cashaddr_encode) {
 }
 
 NAN_METHOD(cashaddr_decode) {
-  if (info.Length() < 3)
+  if (info.Length() < 2)
     return Nan::ThrowError("cashaddr_decode() requires arguments.");
 
   if (!info[0]->IsString())
@@ -342,16 +339,11 @@ NAN_METHOD(cashaddr_decode) {
   if (!info[1]->IsString())
     return Nan::ThrowTypeError("Second argument must be a string.");
 
-  if (!info[2]->IsObject())
-    return Nan::ThrowTypeError("Third argument must be an object.");
-
   Nan::Utf8String addr_(info[0]);
   const char *addr = (const char *)*addr_;
 
   Nan::Utf8String default_prefix_(info[1]);
   const char *default_prefix = (const char *)*default_prefix_;
-
-  v8::Local<v8::Object> ret = info[2].As<v8::Object>();
 
   uint8_t hash[65];
   memset(hash, 0, 65);
@@ -367,6 +359,8 @@ NAN_METHOD(cashaddr_decode) {
     return Nan::ThrowError(bstring_cashaddr_strerror(err));
 
   prefix_len = strlen((char *)&prefix[0]);
+
+  v8::Local<v8::Object> ret = Nan::New<v8::Object>();
 
   Nan::Set(ret,
     Nan::New<v8::String>("prefix").ToLocalChecked(),
