@@ -87,11 +87,17 @@ const invalidAddresses = [
   'BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2',
   'bc1rw5uspcuh',
   'bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d'
-  + '6qejxtdg4y5r3zarvary0c5xw7kw5rljs90',
+    + '6qejxtdg4y5r3zarvary0c5xw7kw5rljs90',
+  'bca0w508d6qejxtdg4y5r3zarvary0c5xw7kw508d'
+    + '6qejxtdg4y5r3zarvary0c5xw7kw5rljs90234567789035',
   'BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P',
   'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
   'tb1pw508d6qejxtdg4y5r3zarqfsj6c3',
-  'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv'
+  'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv',
+  'wtfbbqhelpnoshitwe2z5nuhllhu6z8pptu8m36cl'
+    + 'zge37dnfsdquht73wsx4cmwcwql322x3gmmwq2gjuxp6eaaus',
+  'bcfbbqhelpnoshitwe2z7anje5j3wvz8hw3rxadzc'
+    + 'ppgghm0aec23ttfstphjegfx08hwk5uhmusa7j28yrk8cx4qj'
 ];
 
 function fromAddress(hrp, addr) {

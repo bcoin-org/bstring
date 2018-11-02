@@ -123,7 +123,7 @@ bstring_bech32_deserialize(
 
   hrp_len = input_len - (1 + *data_len);
 
-  if (hrp_len < 1 || *data_len < 6)
+  if (1 + *data_len >= input_len || *data_len < 6)
     return false;
 
   *(data_len) -= 6;
