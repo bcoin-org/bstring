@@ -166,9 +166,9 @@ NAN_METHOD(bech32_convert_bits) {
 
   const uint8_t *data = (uint8_t *)node::Buffer::Data(dbuf);
   size_t data_len = node::Buffer::Length(dbuf);
-  int frombits = (int)info[1]->Int32Value();
-  int tobits = (int)info[2]->Int32Value();
-  int pad = (int)info[3]->BooleanValue();
+  int frombits = (int)Nan::To<int32_t>(info[1]).FromJust();
+  int tobits = (int)Nan::To<int32_t>(info[2]).FromJust();
+  int pad = (int)Nan::To<bool>(info[3]).FromJust();
 
   if (!(frombits == 8 && tobits == 5 && pad == 1)
       && !(frombits == 5 && tobits == 8 && pad == 0)) {
@@ -222,7 +222,7 @@ NAN_METHOD(bech32_encode) {
     return Nan::ThrowTypeError("Third argument must be a buffer.");
 
   const char *hrp = (const char *)*hstr;
-  int witver = (int)info[1]->Int32Value();
+  int witver = (int)Nan::To<int32_t>(info[1]).FromJust();
 
   const uint8_t *witprog = (uint8_t *)node::Buffer::Data(wbuf);
   size_t witprog_len = node::Buffer::Length(wbuf);
@@ -309,7 +309,7 @@ NAN_METHOD(cashaddr_encode) {
     return Nan::ThrowTypeError("Third argument must be a buffer.");
 
   const char *prefix = (const char *)*prefix_str;
-  int type = (int)info[1]->Int32Value();
+  int type = (int)Nan::To<int32_t>(info[1]).FromJust();
 
   const uint8_t *hash = (uint8_t *)node::Buffer::Data(hashbuf);
   size_t hash_len = node::Buffer::Length(hashbuf);

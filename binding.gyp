@@ -14,6 +14,7 @@
       "-Wno-uninitialized",
       "-Wno-unused-function",
       "-Wno-cast-function-type",
+      "-Wno-deprecated-declarations",
       "-Wextra",
       "-O3"
     ],
