@@ -1,6 +1,6 @@
 {
   "name": "bstring",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "String encodings for javascript",
   "keywords": [
     "string",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "bindings": "~1.3.1",
-    "bsert": "~0.0.4",
+    "bsert": "~0.0.5",
     "nan": "~2.11.1"
   },
   "devDependencies": {
