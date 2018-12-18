@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const base58 = require('../lib/base58');
 const json = require('./data/base58.json');
 
