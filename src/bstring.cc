@@ -415,4 +415,4 @@ NAN_MODULE_INIT(init) {
   Nan::Export(target, "cashaddr_test", cashaddr_test);
 }
 
-NODE_MODULE(bstring, init)
+NAN_MODULE_WORKER_ENABLED(bstring, init)
