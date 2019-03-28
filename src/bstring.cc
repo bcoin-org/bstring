@@ -415,4 +415,8 @@ NAN_MODULE_INIT(init) {
   Nan::Export(target, "cashaddr_test", cashaddr_test);
 }
 
+#if NODE_MAJOR_VERSION >= 10
 NAN_MODULE_WORKER_ENABLED(bstring, init)
+#else
+NODE_MODULE(bstring, init)
+#endif
