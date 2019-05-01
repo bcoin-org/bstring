@@ -126,8 +126,8 @@ NAN_METHOD(bech32_deserialize) {
   hlen = strlen((char *)&hrp[0]);
 
   v8::Local<v8::Array> ret = Nan::New<v8::Array>();
-  ret->Set(0, Nan::New<v8::String>((char *)&hrp[0], hlen).ToLocalChecked());
-  ret->Set(1, Nan::CopyBuffer((char *)&data[0], data_len).ToLocalChecked());
+  Nan::Set(ret, 0, Nan::New<v8::String>((char *)&hrp[0], hlen).ToLocalChecked());
+  Nan::Set(ret, 1, Nan::CopyBuffer((char *)&data[0], data_len).ToLocalChecked());
 
   info.GetReturnValue().Set(ret);
 }
